@@ -3,6 +3,7 @@
 //  SemanticImageSearch
 //
 //  Service for vector embedding generation using Core ML.
+//  Supports both CLIP models and Vision FeaturePrint fallback.
 //
 
 import Foundation
@@ -17,8 +18,8 @@ actor VectorService {
     // MARK: - Properties
     
     private let index = VectorIndex(config: .clip)
-    private var imageEncoder: VNCoreMLModel?
-    private var textEncoder: VNCoreMLModel?
+    private let clipService = CLIPService.shared
+    private var useCLIP = false
     private var isInitialized = false
     
     // Index file path
@@ -40,9 +41,16 @@ actor VectorService {
     func initialize() async throws {
         guard !isInitialized else { return }
         
-        // Try to load Core ML models if available
-        // In production, you would bundle the CLIP models with the app
-        // For now, we use a fallback to Vision's built-in feature extraction
+        // Try to initialize CLIP service
+        do {
+            try await clipService.initialize()
+            useCLIP = await clipService.isAvailable
+            if useCLIP {
+                print("✅ Using CLIP models for embeddings")
+            }
+        } catch {
+            print("⚠️ CLIP not available, using Vision FeaturePrint fallback")
+        }
         
         // Try to load saved index
         if FileManager.default.fileExists(atPath: indexPath.path) {
@@ -56,25 +64,37 @@ actor VectorService {
     
     /// Generate embedding for an image
     func generateImageEmbedding(from image: NSImage) async throws -> [Float] {
+        // Use CLIP if available
+        if useCLIP {
+            return try await clipService.encodeImage(image)
+        }
+        
+        // Fallback to Vision FeaturePrint
         guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
             throw VectorError.invalidImage
         }
         
-        return try await generateImageEmbedding(from: cgImage)
+        return try await generateImageEmbeddingWithVision(from: cgImage)
     }
     
     /// Generate embedding for an image at URL
     func generateImageEmbedding(from url: URL) async throws -> [Float] {
+        // Use CLIP if available
+        if useCLIP {
+            return try await clipService.encodeImage(at: url)
+        }
+        
+        // Fallback to Vision FeaturePrint
         guard let image = NSImage(contentsOf: url),
               let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
             throw VectorError.invalidImage
         }
         
-        return try await generateImageEmbedding(from: cgImage)
+        return try await generateImageEmbeddingWithVision(from: cgImage)
     }
     
-    /// Generate embedding from CGImage using Vision's feature print
-    private func generateImageEmbedding(from cgImage: CGImage) async throws -> [Float] {
+    /// Generate embedding from CGImage using Vision's feature print (fallback)
+    private func generateImageEmbeddingWithVision(from cgImage: CGImage) async throws -> [Float] {
         return try await withCheckedThrowingContinuation { continuation in
             let request = VNGenerateImageFeaturePrintRequest { request, error in
                 if let error = error {
@@ -125,11 +145,13 @@ actor VectorService {
     // MARK: - Text Embedding
     
     /// Generate embedding for text query
-    /// Uses a simple but effective text embedding approach
     func generateTextEmbedding(from text: String) async throws -> [Float] {
-        // For production, you would use CLIP's text encoder
-        // Here we use a simpler approach based on Natural Language framework
+        // Use CLIP if available
+        if useCLIP {
+            return try await clipService.encodeText(text)
+        }
         
+        // Fallback to simple embedding
         return try await withCheckedThrowingContinuation { continuation in
             DispatchQueue.global(qos: .userInitiated).async {
                 let embedding = self.simpleTextEmbedding(text)
@@ -140,7 +162,7 @@ actor VectorService {
     
     /// Simple text embedding using character-level features
     /// This is a fallback when CLIP text encoder is not available
-    private func simpleTextEmbedding(_ text: String) -> [Float] {
+    private nonisolated func simpleTextEmbedding(_ text: String) -> [Float] {
         let targetDimension = 512
         var embedding = [Float](repeating: 0, count: targetDimension)
         
@@ -171,6 +193,11 @@ actor VectorService {
         }
         
         return embedding
+    }
+    
+    /// Check if using CLIP models
+    var isUsingCLIP: Bool {
+        useCLIP
     }
     
     // MARK: - Index Operations

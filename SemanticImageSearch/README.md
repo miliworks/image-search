@@ -87,6 +87,29 @@ SemanticImageSearch/
 
 ## 🚀 快速开始
 
+### 设置 CLIP 模型（推荐）
+
+为获得最佳的语义搜索效果，建议安装 CLIP 模型：
+
+```bash
+cd SemanticImageSearch/Scripts
+./setup_models.sh
+```
+
+这将自动：
+1. 创建 Python 虚拟环境
+2. 安装必要的依赖
+3. 下载并转换 CLIP 模型
+4. 将模型安装到项目中
+
+**手动安装依赖：**
+```bash
+pip install torch torchvision transformers coremltools Pillow numpy
+python Scripts/download_clip_model.py --output ./CLIPModels --verify
+```
+
+> 💡 如果不安装 CLIP 模型，应用将使用 Vision 框架的内置特征提取作为后备方案。
+
 ### 构建项目
 
 1. 使用 Xcode 15 或更高版本打开项目：
@@ -131,6 +154,32 @@ open SemanticImageSearch.xcodeproj
 结合语义搜索和文本搜索的结果，使用加权算法得出最终排名。
 
 默认权重: 语义 70% + 文本 30%
+
+## 🤖 CLIP 模型
+
+### 模型架构
+
+应用支持 OpenAI 的 CLIP (Contrastive Language-Image Pre-training) 模型：
+
+| 模型 | 参数量 | 精度 | 速度 |
+|------|--------|------|------|
+| ViT-B/32 (默认) | 151M | 中等 | 快 |
+| ViT-B/16 | 150M | 较高 | 中等 |
+| ViT-L/14 | 428M | 最高 | 慢 |
+
+### 模型文件结构
+
+```
+Resources/
+├── CLIPImageEncoder.mlpackage    # 图像编码器
+├── CLIPTextEncoder.mlpackage     # 文本编码器
+├── clip_config.json              # 模型配置
+└── clip_vocab.json               # 词汇表
+```
+
+### 后备方案
+
+如果 CLIP 模型未安装，应用会自动使用 Vision 框架的 `VNGenerateImageFeaturePrintRequest` 作为后备方案。这提供了基本的图像特征提取，但语义搜索效果不如 CLIP。
 
 ## 💡 优化策略
 

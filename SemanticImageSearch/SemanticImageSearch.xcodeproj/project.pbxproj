@@ -35,6 +35,7 @@
 		A1000026 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000026; };
 		A1000027 /* VectorIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000027; };
 		A1000028 /* libsqlite3.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = A2000028; };
+		A1000029 /* CLIPService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2000031; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -69,6 +70,7 @@
 		A2000028 /* libsqlite3.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsqlite3.tbd; path = usr/lib/libsqlite3.tbd; sourceTree = SDKROOT; };
 		A2000029 /* SemanticImageSearch.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SemanticImageSearch.entitlements; sourceTree = "<group>"; };
 		A2000030 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A2000031 /* CLIPService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIPService.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +135,7 @@
 				A2000007 /* DatabaseService.swift */,
 				A2000008 /* VectorService.swift */,
 				A2000027 /* VectorIndex.swift */,
+				A2000031 /* CLIPService.swift */,
 				A2000009 /* ImageProcessingService.swift */,
 				A2000010 /* OCRService.swift */,
 				A2000011 /* SearchEngine.swift */,
@@ -296,6 +299,7 @@
 				A1000025 /* StatusBarView.swift in Sources */,
 				A1000026 /* AppState.swift in Sources */,
 				A1000027 /* VectorIndex.swift in Sources */,
+				A1000029 /* CLIPService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
